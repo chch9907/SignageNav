@@ -18,7 +18,7 @@ from queue import Queue
 import tf
 from tf.transformations import euler_from_quaternion
 from scene_understand.perceptor import Perceptor
-from utils.utils import read_yaml, mid_perpendicular_lines, get_new_pose, pixel_to_world, _normalize_heading, neighbor_bfs_free, _world_to_map2, _map_to_world
+from utils.utils import read_yaml, mid_perpendicular_lines, get_new_pose, pixel_to_world, _normalize_heading, neighbor_bfs_free, _world_to_map2, _map_to_world, compute_normal
 from utils.realsense import RealSenseCamera, RealSenseCameraDepth
 from utils.ros import ROS
 from arguments import get_args
@@ -79,29 +79,30 @@ class Viewpoint:
             local1 = self.ros._pixel_to_local([int(xl), y_mid], depth1)  # x, y, z -- SLAM coord
             local2 = self.ros._pixel_to_local([int(xr), y_mid], depth2)
             height = (local1[2] + local2[2]) / 2
+            mid_point_local = np.array([(local1[0] + local2[0]) / 2, (local1[1] + local2[1]) / 2])
 
             ## local coord
-            mid_point_local = np.array([(local1[0] + local2[0]) / 2, (local1[1] + local2[1]) / 2])
-            A, B, C = mid_perpendicular_lines(local1[0], local1[1], local2[0], local2[1])  # SLAM coord
-            if B == 0:
-                theta = pi / 2 if -A > 0 else -pi / 2
-            else:
-                theta = np.arctan(-A / B)
+            left_top = np.array(self.ros._pixel_to_local([xl, yl], depth[yl, xl]))
+            right_top = np.array(self.ros._pixel_to_local([xr, yl], depth[yl, xr]))
+            left_down = np.array(self.ros._pixel_to_local([xl, yr], depth[yr, xl]))
+            right_down = np.array(self.ros._pixel_to_local([xr, yr], depth[yr, xr]))
+            right_mid = (right_top + right_down) / 2
+            left_mid = (left_top + left_down) / 2
+            vector_horizon = left_mid - right_mid
+            
+            top_mid = (right_top + left_top) / 2
+            down_mid = (right_down + left_down) / 2
+            vector_vertical = top_mid - down_mid 
+            
+            body_normal = compute_normal(vector_horizon, vector_vertical)
+            theta = _normalize_heading(np.arctan2(body_normal[1], body_normal[0]))  # body orientation
             dxy = (self.afford_ratio * height) * np.array([np.cos(theta), np.sin(theta)])
-            viewpoint1 = mid_point_local + dxy
-            viewpoint2 = mid_point_local - dxy
+            viewpoint_local = mid_point_local - dxy
+            viewpoint_local = np.append(viewpoint_local, theta)  # [x, y, theta]
+            ## local to world
+            viewpoint_world = get_new_pose(cur_pose_world, viewpoint_local) # [x, y, cur_pose[2] + theta]
             
-            viewpoint1_local = np.append(viewpoint1, theta)  # [x, y, theta]
-            viewpoint1_world = get_new_pose(cur_pose_world, viewpoint1_local) # [x, y, theta]
-            
-            viewpoint2_local = np.append(viewpoint2, theta)  # [x, y, theta]
-            viewpoint2_world = get_new_pose(cur_pose_world, viewpoint2_local) # [x, y, theta]
-            
-            if norm(cur_pose_world[:2] - viewpoint1_world[:2]) < norm(cur_pose_world[:2] - viewpoint2_world[:2]):
-                viewpoint_world = viewpoint1_world
-            else:
-                viewpoint_world = viewpoint2_world
-            
+            ## world to map
             mapData = copy(self.ros.mapData)
             viewpoint_map = _world_to_map2(mapData, viewpoint_world[:2])  # (my, mx)
             

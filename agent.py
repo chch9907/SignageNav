@@ -638,7 +638,8 @@ if __name__ == '__main__':
     
     # detector_process(ESTS_model, camera_obj, rgbd_topics,
     #                  cfg, ros_cfg, exp_id, queue_ocr, args.show) 
-    
+    # p_agent.terminate()
+    # p_agent.join()
     
     
     #============= batch-inference mode =============
@@ -659,13 +660,15 @@ if __name__ == '__main__':
     batch_detector_process(ESTS_model, queue_imgs, queue_ocr,
                      cfg, ros_cfg, exp_id, args.show) 
 
-
-    ## 
-    # p_camera.join()
-    # p_detector.join()
-    # p_agent.join()
+    p_camera.terminate()
+    p_camera.join()
     
-    ##
+    p_agent.terminate()
+    p_agent.join()
+    
+    
+    
+    ## clean output files for failed experiments 
     output_path = os.path.join(cfg.output_dir, exp_id)
     if os.path.exists(output_path) and len(os.listdir(output_path)) <= 2:
         os.system(f'rm -r {output_path}')

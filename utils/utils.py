@@ -465,3 +465,8 @@ def has_cht(text):
 
 def _sim_one_to_multiple(local_lm, global_lm):
     return [_str_similar(local_lm, lm) for lm in global_lm]
+
+def compute_normal(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
+    normal = np.cross(v1, v2)
+    normal = normal / np.linalg.norm(normal)
+    return normal
