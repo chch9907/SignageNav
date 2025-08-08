@@ -38,22 +38,22 @@ This code has been tested on Ubuntu 20.04 with ROS Noetic.
     Download model weights from [OneDrive](https://1drv.ms/u/s!AotJrudtBr-K70dUc3W3ly1KI-zZ?e=ed6Drt) to /scene_understanding/ESTextSpotter or your own path defined in the config file.
 
 
-3. Prepare omcl with python-bindings for global path planner:  
+3. Prepare OMPL with Python-bindings for global path planner:  
 
-    The installation script for OMPL with py-bindings has been downloaded. Install omple by executing the shell file:
+    The installation script for OMPL with py-bindings has been downloaded. Install OPML by executing the shell file:
     ``` bash
     ./install-ompl-ubuntu.sh --python 
     ```
     
-    - Change python path at -DPYTHON_EXEC in the shell file if needed.  
+    - Change Python path at -DPYTHON_EXEC in the shell file if needed.  
     - Ompl-1.6.0 requires zipp==1.15.0 and pygccxml==2.2.1, otherwise it will fail to generate bindings!  
     - If it still raises errors while making update_bindings: 'FileNotFoundError: [Errno 2] No such file or directory: 'bindings/base':
-    See https://github.com/ompl/ompl/issues/1036, git clone the latest ompl github and compile it manually following commands from line 86 to 101 in the install-ompl-ubuntu.sh.
+    See https://github.com/ompl/ompl/issues/1036, git clone the latest ompl GitHub and compile it manually following commands from line 86 to 101 in the install-ompl-ubuntu.sh.
 
 4. Customization
     - Modify necessary params in the [config files](config/scene1.yaml) (e.g., camera intrinsics).
     - For rrt_exploration, define the sampling boundary in [global_rrt_detector.cpp](venue_map_planner/rrt_exploration/src/global_rrt_detector.cpp) and [local_rrt_detector.cpp](venue_map_planner/rrt_exploration/src/local_rrt_detector.cpp). 
-    - Then put [venue_map_planner](venue_map_planner) in an individual catkin workspace for compiling and launching it.
+    - Then put [venue_map_planner](venue_map_planner) in an individual catkin workspace to compile and launch it.
     
 
 
