@@ -66,6 +66,8 @@ class Viewpoint:
     
     def generate_viewpoint(self, depth, bbox, cur_pose_world, center_map, show=False):
         xl, yl, xr, yr = bbox.astype(np.int64)
+        xl = min(xl, depth.shape[1] - 1)
+        yl = min(yl, depth.shape[0] - 1)
         xr = min(xr, depth.shape[1] - 1)
         yr = min(yr, depth.shape[0] - 1)
         if center_map is not None:
@@ -79,27 +81,34 @@ class Viewpoint:
             local1 = self.ros._pixel_to_local([int(xl), y_mid], depth1)  # x, y, z -- SLAM coord
             local2 = self.ros._pixel_to_local([int(xr), y_mid], depth2)
             height = (local1[2] + local2[2]) / 2
+    
+            #1) perpendicular line (works better)
             mid_point_local = np.array([(local1[0] + local2[0]) / 2, (local1[1] + local2[1]) / 2])
-
-            ## local coord
-            left_top = np.array(self.ros._pixel_to_local([xl, yl], depth[yl, xl]))
-            right_top = np.array(self.ros._pixel_to_local([xr, yl], depth[yl, xr]))
-            left_down = np.array(self.ros._pixel_to_local([xl, yr], depth[yr, xl]))
-            right_down = np.array(self.ros._pixel_to_local([xr, yr], depth[yr, xr]))
-            right_mid = (right_top + right_down) / 2
-            left_mid = (left_top + left_down) / 2
-            vector_horizon = left_mid - right_mid
+            A, B, C = mid_perpendicular_lines(local1[0], local1[1], local2[0], local2[1]) 
+            if B == 0:
+                theta = pi / 2 if -A > 0 else -pi / 2
+            else:
+                theta = np.arctan(-A / B)
             
-            top_mid = (right_top + left_top) / 2
-            down_mid = (right_down + left_down) / 2
-            vector_vertical = top_mid - down_mid 
+            #2) normal vector
+            # left_top = np.array(self.ros._pixel_to_local([xl, yl], depth[yl, xl]))
+            # right_top = np.array(self.ros._pixel_to_local([xr, yl], depth[yl, xr]))
+            # left_down = np.array(self.ros._pixel_to_local([xl, yr], depth[yr, xl]))
+            # right_down = np.array(self.ros._pixel_to_local([xr, yr], depth[yr, xr]))
+            # right_mid = (right_top + right_down) / 2
+            # left_mid = (left_top + left_down) / 2
+            # vector_horizon = left_mid - right_mid
+            # top_mid = (right_top + left_top) / 2
+            # down_mid = (right_down + left_down) / 2
+            # vector_vertical = top_mid - down_mid 
+            # body_normal = compute_normal(vector_horizon, vector_vertical)
+            # theta = _normalize_heading(np.arctan2(body_normal[1], body_normal[0]))  # body orientation
             
-            body_normal = compute_normal(vector_horizon, vector_vertical)
-            theta = _normalize_heading(np.arctan2(body_normal[1], body_normal[0]))  # body orientation
-            dxy = (self.afford_ratio * height) * np.array([np.cos(theta), np.sin(theta)])
+            dxy = (self.afford_ratio * height) * np.array([np.cos(theta), np.sin(theta)]) 
+            # or replace (self.afford_ratio * height) with a predefined distance
+            
             viewpoint_local = mid_point_local - dxy
             viewpoint_local = np.append(viewpoint_local, theta)  # [x, y, theta]
-            ## local to world
             viewpoint_world = get_new_pose(cur_pose_world, viewpoint_local) # [x, y, cur_pose[2] + theta]
             
             ## world to map
@@ -118,7 +127,6 @@ class Viewpoint:
                     return None, None
                 viewpoint_world = _map_to_world(mapData, viewpoint_map)
                 viewpoint_world = np.append(viewpoint_world, _normalize_heading(cur_pose_world[2] + theta))
-            # print("viewpoint local:", viewpoint_local, "viewpoint map:", viewpoint_map, 'viewpoint world:', viewpoint_world)
 
             if show: ## plot map
                 cur_pose_map = _world_to_map2(mapData, cur_pose_world[:2])
@@ -236,7 +244,7 @@ class Viewpoint:
                 new_distances = []
                 for item in out:
                     center_map, center_world, distance = \
-                        self.get_region_depth(depth_img, item, cur_pose, mapData)
+                        self.ros.get_region_depth(depth_img, item, cur_pose, mapData)
                     merge_idx = self.merge_idx(center_world)
                     if not merge_idx or merge_idx != self.cur_finished_idx:
                         new_instances.append(item)

@@ -449,7 +449,7 @@ def dict_to_intristics(dict_):
     depth_intrinsic.ppy = dict_['ppy']
     depth_intrinsic.fx = dict_['fx']
     depth_intrinsic.fy = dict_['fy']
-    depth_intrinsic.model = dict_['model']  #rs.pyrealsense2.distortion.inverse_brown_conrady
+    depth_intrinsic.model = dict_['model']  #rs.distortion.inverse_brown_conrady
     depth_intrinsic.coeffs = dict_['coeffs']
     return depth_intrinsic
 

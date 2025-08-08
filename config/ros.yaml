@@ -40,7 +40,7 @@ camerae_intrinstics:
   ppy: 242.9739227294922
   fx: 386.22198486328125
   fy: 385.70904541015625
-  model: rs.pyrealsense2.distortion.inverse_brown_conrady
+  model: pyrealsense2.distortion.inverse_brown_conrady
   coeffs: 
     - -0.054668378084897995
     - 0.06383420526981354

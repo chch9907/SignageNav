@@ -614,7 +614,7 @@ if __name__ == '__main__':
         rgbd_topics = {
             'rgb': '/camera/color/image_raw',
             'depth': '/camera/aligned_depth_to_color/image_raw',
-            # 'camera_info': 'camera/depth/camera_info'
+            # 'camera_info': 'camera/aligned_depth_to_color/camera_info'
         }
         intrinsics_dict = ros_cfg.camerae_intrinstics
     else:
