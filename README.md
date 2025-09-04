@@ -72,7 +72,7 @@ python3 offline_process_venue_maps.py --scene 1 --ocr_type cnocr
 
 2. Online stage
 ```bash
-# run Fast-Lio, Octomap Mapping, Dynamic Pointcloud Filtering, Robot Control, local policy
+# run FAST-LIO, octomap mapping, dynamic pointcloud filtering (optional), local policy for dynamic collision avoidance (move_base is also enough), robot base controller.
 
 # run agent.py for signage understanding, semantic mapping, topological localization and planning
 conda activate signnav
