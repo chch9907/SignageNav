@@ -5,6 +5,8 @@
 
 *The University of Hong Kong, Centre for Transformative Garment Production*
 
+[Project website](https://sites.google.com/view/signage-aware-exploration/home)
+
 ![framework](framework/framework.png)
 
 ## Preparation
@@ -51,32 +53,35 @@ This code has been tested on Ubuntu 20.04 with ROS Noetic.
     See https://github.com/ompl/ompl/issues/1036, git clone the latest ompl GitHub and compile it manually following commands from line 86 to 101 in the install-ompl-ubuntu.sh.
 
 4. Customization
-    - Modify necessary params in the [config files](config/scene1.yaml) (e.g., camera intrinsics).
+    - Create your own config file referring to the example config file: [config/scene2.yaml](config/scene2.yaml). Modify necessary params related to the ROS in [ros.yaml](config/ros.yaml), e.g., topic names and camera intrinsics.
     - For rrt_exploration, define the sampling boundary in [global_rrt_detector.cpp](venue_map_planner/rrt_exploration/src/global_rrt_detector.cpp) and [local_rrt_detector.cpp](venue_map_planner/rrt_exploration/src/local_rrt_detector.cpp). 
-    - Then put [venue_map_planner](venue_map_planner) in an individual catkin workspace to compile and launch it.
+    - Then, put [venue_map_planner](venue_map_planner) in an individual catkin workspace to compile and launch it.
     
 
 
 
 ## Run
-
 1. Offline stage
+   
+First prompt [AnyText](https://github.com/tyxsspa/AnyText) to pre-generate pseudo images with landmark names extracted from venue maps, and put the images in the config.text_img_path, e.g., [materials/text_imgs/scene2](materials/text_imgs/scene2).
+
+Then, put your guide map in the config.map_path, e.g., [materials/guide_maps/scene2.png](materials/guide_maps/scene2.png).
+
 ```bash
-# pre-generate pseudo images by landmark names extracted from venue maps
-python3 offline_process_diffusion_imgs.py --scene 1
+# extract text embeddings of the pseudo images and store them as a pickle file in the config.text_img_path.
+python3 offline_process_diffusion_imgs.py --scene 2
 
-# pre-build topological graphs from venue maps
-python3 offline_process_venue_maps.py --scene 1 --ocr_type cnocr
-
+# pre-build topological graphs from venue maps stored in the config.map_path.
+python3 offline_process_venue_maps.py --scene 2 --ocr_type cnocr
 ```
 
 2. Online stage
 ```bash
 # run FAST-LIO, octomap mapping, dynamic pointcloud filtering (optional), local policy for dynamic collision avoidance (move_base is also enough), robot base controller.
 
-# run agent.py for signage understanding, semantic mapping, topological localization and planning
+# run agent.py for signage understanding, semantic mapping, topological localization, and planning
 conda activate signnav
-python3 agent.py --scene 1 --use_camera_topic --plot # --show
+python3 agent.py --scene 2 --use_camera_topic --plot # --show
 
 # run venue_map_planner for frontier detection, global and local path planning
 roslaunch venue_map_planner my_explore.launch
@@ -98,7 +103,7 @@ roslaunch venue_map_planner my_explore.launch
   - venue_map_planner/rrt_exploration/launch/my_explore.launch
 
 ## Acknowledgement
-[<u>ESTextSpotter</u>](https://github.com/chch9907/ESTextSpotter), [<u>OVIR-3D</u>](https://github.com/shiyoung77/OVIR-3D), [<u>rrt_exploration</u>](https://github.com/hasauino/rrt_exploration), [<u>distance_map</u>](https://github.com/artivis/distance_map), [<u>cnocr</u>](https://github.com/breezedeus/CnOCR)
+[<u>ESTextSpotter</u>](https://github.com/chch9907/ESTextSpotter), [AnyText](https://github.com/tyxsspa/AnyText), [<u>OVIR-3D</u>](https://github.com/shiyoung77/OVIR-3D), [<u>rrt_exploration</u>](https://github.com/hasauino/rrt_exploration), [<u>distance_map</u>](https://github.com/artivis/distance_map), [<u>cnocr</u>](https://github.com/breezedeus/CnOCR)
 
 
 ## Cite
