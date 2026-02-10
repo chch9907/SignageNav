@@ -22,7 +22,7 @@ This code has been tested on Ubuntu 20.04 with ROS Noetic.
     - Then create conda env:
     ```bash
     # three modified submodules: ESTextSpotter, rrt_exploration, distance_map
-    git clone https://github.com/chch9907/SignageExplore --recurse-submodules
+    git clone https://github.com/CameronChen07/SignageNav --recurse-submodules
     
     conda create -n signnav python=3.8
     pip install -r requirements.txt
